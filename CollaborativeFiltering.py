@@ -11,15 +11,19 @@ class CollaborativeFiltering:
     self.user_movie_matrix = user_movie_matrix
     self.dense_matrix = None
     self.optimal_k = k
+
     self.user_similarity = None
     self.item_similarity = None
     self.user_means = None
 
 
   def calculate_pearson_similarity(self, user_id):
-      mf = MatrixFactorization(self.user_movie_matrix)
-      reduced_matrix = mf.fit(self.optimal_k)
-      reduced_matrix_csr = csr_matrix(reduced_matrix)  
+      if self.dense_matrix is None:
+        mf = MatrixFactorization(self.user_movie_matrix)
+        reduced_matrix = mf.fit(self.optimal_k)
+        self.dense_matrix = csr_matrix(reduced_matrix)
+      
+      reduced_matrix_csr = self.dense_matrix
       target_user_vector = reduced_matrix_csr[user_id].toarray().flatten() 
       similarities = {}
 
@@ -42,18 +46,15 @@ class CollaborativeFiltering:
       """
       아이템 간의 Adjusted Cosine Similarity를 계산하여 item_similarity 행렬을 저장
         """
-      mf = MatrixFactorization(self.user_movie_matrix)
-      reduced_matrix = mf.fit(self.optimal_k)  # 최적 차원으로 MF 수행
-      if not isinstance(reduced_matrix, csr_matrix):
-        reduced_matrix_csr = csr_matrix(reduced_matrix)
-      else:
-        reduced_matrix_csr = reduced_matrix.copy()
-      # ✅ 사용자 평균값을 고려한 조정 (Adjusted)
-      self.dense_matrix = reduced_matrix_csr
-      user_means = reduced_matrix_csr.mean(axis=1).A1  # 사용자 평균 벡터
+      if self.dense_matrix is None:
+        mf = MatrixFactorization(self.user_movie_matrix)
+        reduced_matrix = mf.fit(self.optimal_k)
+        self.dense_matrix = csr_matrix(reduced_matrix)
+      user_means = np.array([np.nanmean(row[row > 0]) if np.any(row > 0) else 0 for row in self.dense_matrix.toarray()])
+
 
       # ✅ 조정된 행렬 생성
-      adjusted_matrix = reduced_matrix_csr.copy()
+      adjusted_matrix = self.dense_matrix.copy()
       adjusted_matrix.data = adjusted_matrix.data - user_means[adjusted_matrix.indices]
 
       # ✅ Adjusted Cosine Similarity 계산
@@ -82,7 +83,8 @@ class CollaborativeFiltering:
     top_k_users = sorted([(user, similarities[user]) for user in rated_users], key=lambda x: x[1], reverse=True)[:k]
     # 사용자 평균 평점 계산
     user_mean = self.user_movie_matrix.loc[user_id]
-    user_mean = user_mean[user_mean != 0].mean()  # 0이 아닌 값만 평균 계산
+    #user_mean = user_mean[user_mean != 0].mean()  # 0이 아닌 값만 평균 계산
+    user_mean = user_mean[user_mean != 0].mean() if not user_mean[user_mean != 0].empty else 0
     numerator = 0
     denominator = 0
     for similar_user, sim in top_k_users:
@@ -114,7 +116,7 @@ class CollaborativeFiltering:
     sim_vector = self.item_similarity.getrow(item_index).toarray().flatten()
 
     # 자기 자신은 추천에서 제외: 유사도를 매우 낮게 만들어 무시되도록 함
-    sim_vector[item_index] = -np.inf
+    sim_vector[item_index] = 0
     # 유사도가 높은 순서대로 후보 아이템 인덱스 정렬
     candidate_indices = np.argsort(sim_vector)[::-1]
     recommendations = []

@@ -17,11 +17,12 @@ class MatrixFactorization:
   def predict(self, k, top_k, is_user =True):
       reduced_matrix = self.fit(k)
       reconstructed_matrix = self.svd_model.inverse_transform(reduced_matrix)
-      actual_items = {user_id: np.where(self.user_matrix.iloc[user_id] > 0)[0] for user_id in range(self.user_matrix.shape[0])}
       if is_user:
+        actual_items = {user_id: np.where(self.user_matrix.iloc[user_id] > 0)[0] for user_id in range(self.user_matrix.shape[0])}
         predicted_items = {user_id: np.argsort(reconstructed_matrix[user_id])[::-1][:top_k]
                    for user_id in range(self.user_matrix.shape[0])}
       else:
+        actual_items = {user_id: np.where(self.user_matrix.iloc[user_id] > 0)[0] for user_id in range(self.user_matrix.shape[1])}
         predicted_items = {item_id: np.argsort(reconstructed_matrix[item_id])[::-1][:top_k]
                    for item_id in range(self.user_matrix.shape[1])}
       return actual_items, predicted_items
