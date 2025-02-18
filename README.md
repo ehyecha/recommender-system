@@ -21,7 +21,7 @@ Collaborative Filtering (Item-based)
 
 
 Content-based Filtering
-영화의 장르, 개봉 연도 등의 정보를 활용하여 추천
+영화의 장르, 감독, 출연진 등의 정보를 활용하여 추천
 
 
 Neural Matrix Factorization Model
