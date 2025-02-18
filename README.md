@@ -14,9 +14,15 @@ Collaborative Filtering 및 Content-based Filtering을 사용하며, Neural Matr
 ### Methodologies
 Collaborative Filtering (User-based)
 사용자 간 유사도를 기반으로 평점을 예측
+
+
 Collaborative Filtering (Item-based)
 영화 간 유사도를 기반으로 평점을 예측
+
+
 Content-based Filtering
 영화의 장르, 개봉 연도 등의 정보를 활용하여 추천
+
+
 Neural Matrix Factorization Model
 신경망을 이용한 행렬 분해 모델을 활용
