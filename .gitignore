@@ -3,3 +3,4 @@
 dataset/*
 __pychache__/*
 test_example.ipynb
+lightning_logs/*
