@@ -90,7 +90,8 @@ class CollaborativeFiltering:
     for similar_user, sim in top_k_users:
         if item_id in self.user_movie_matrix.columns:
             # 유사 사용자의 평균 평점
-            similar_user_mean = self.user_movie_matrix.loc[similar_user].mean()
+            other_user =  self.user_movie_matrix.loc[similar_user]
+            similar_user_mean = other_user[other_user > 0].mean()
 
             # 유사 사용자의 평점과 평균 차이
             rating_diff = self.user_movie_matrix.loc[similar_user, item_id] - similar_user_mean
